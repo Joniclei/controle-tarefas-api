@@ -8,7 +8,7 @@ public class Tarefa
   public string Titulo { get; private set; } = string.Empty;
   public string? Descricao { get; private set; }
   public DateTime DataCriacao { get; private set; }
-  public DateTime DataPrevistaConclusao { get; private set; }
+  public DateTime? DataPrevistaConclusao { get; private set; }
   public DateTime? DataConclusao { get; private set; }
   public StatusTarefa Status { get; private set; }
 
@@ -16,21 +16,21 @@ public class Tarefa
   {
   }
 
-  public static Tarefa Criar(string titulo, string? descricao, DateTime dataPrevistaConclusao)
-  {
+ public static Tarefa Criar(string titulo, string? descricao, DateTime? dataPrevistaConclusao)
+{
     ValidarTitulo(titulo);
     ValidarDataPrevistaConclusao(dataPrevistaConclusao);
 
     return new Tarefa
     {
-      Id = Guid.NewGuid(),
-      Titulo = titulo,
-      Descricao = descricao,
-      DataCriacao = DateTime.Now,
-      DataPrevistaConclusao = dataPrevistaConclusao,
-      Status = StatusTarefa.Pendente
+        Id = Guid.NewGuid(),
+        Titulo = titulo,
+        Descricao = descricao,
+        DataCriacao = DateTime.Now,
+        DataPrevistaConclusao = dataPrevistaConclusao,
+        Status = StatusTarefa.Pendente
     };
-  }
+}
 
   private static void ValidarTitulo(string titulo)
   {
@@ -40,15 +40,16 @@ public class Tarefa
     }
   }
 
-  private static void ValidarDataPrevistaConclusao(DateTime dataPrevistaConclusao)
+ private static void ValidarDataPrevistaConclusao(DateTime? dataPrevistaConclusao)
   {
-    if (dataPrevistaConclusao.Date < DateTime.Now.Date)
-    {
-      throw new DomainException("A data prevista de conclusão não pode ser menor que a data atual.");
-    }
+      if (dataPrevistaConclusao.HasValue && dataPrevistaConclusao.Value.Date < DateTime.Now.Date)
+      {
+          throw new DomainException("A data prevista de conclusão não pode ser menor que a data atual.");
+      }
   }
 
-  public void AtualizarDados(string titulo, string? descricao, DateTime dataPrevistaConclusao)
+
+  public void AtualizarDados(string titulo, string? descricao, DateTime? dataPrevistaConclusao)
   {
     ValidarTitulo(titulo);
     ValidarDataPrevistaConclusao(dataPrevistaConclusao);
@@ -70,20 +71,25 @@ public class Tarefa
   }
 
   public void AtualizarStatus(StatusTarefa novoStatus)
-  {
-      if (Status == StatusTarefa.Concluida && novoStatus == StatusTarefa.Pendente)
-      {
-          throw new DomainException("Uma tarefa concluída não pode voltar para o status Pendente.");
-      }
+{
+    if (!Enum.IsDefined(typeof(StatusTarefa), novoStatus))
+    {
+        throw new DomainException("Status inválido.");
+    }
 
-      if (novoStatus == StatusTarefa.Concluida)
-      {
-          Concluir();
-          return;
-      }
+    if (Status == StatusTarefa.Concluida && novoStatus == StatusTarefa.Pendente)
+    {
+        throw new DomainException("Uma tarefa concluída não pode voltar para o status Pendente.");
+    }
 
-      Status = novoStatus;
-  }
+    if (novoStatus == StatusTarefa.Concluida)
+    {
+        Concluir();
+        return;
+    }
+
+    Status = novoStatus;
+}
 
 
 }
